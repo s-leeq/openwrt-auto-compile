@@ -28,9 +28,10 @@ env:
   DIY_P1_SH: r86s-diy-part1.sh
   DIY_P2_SH: r86s-diy-part2.sh
   UPLOAD_BIN_DIR: true
-  UPLOAD_FIRMWARE: false
+  UPLOAD_FIRMWARE: true
   UPLOAD_COWTRANSFER: false
   UPLOAD_WETRANSFER: false
+  UPLOAD_TMPLINK: true
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
 
@@ -154,6 +155,13 @@ jobs:
         ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
         echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
         echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"
+    
+    - name: Upload firmware to TMPLINK
+      id: tmplink
+      if: steps.organize.outputs.status == 'success' && env.UPLOAD_TMPLINK == 'true' && !cancelled()
+      run: |
+        curl -k -F "file=@ ${FIRMWARE}" -F "token=${secrets.TMPLINK_TOKEN}" -F "model=1"  -X POST "https://connect.tmp.link/api_v2/cli_uploader"
+        echo "::set-output name=tmp-date::$(date -d '72 hour' '+%Y-%m-%d %H:%M')"
 
     - name: Generate release tag
       id: tag
@@ -163,6 +171,7 @@ jobs:
         touch release.txt
         [ $UPLOAD_COWTRANSFER = true ] && echo "🔗 [Cowtransfer](${{ steps.cowtransfer.outputs.url }})" >> release.txt
         [ $UPLOAD_WETRANSFER = true ] && echo "🔗 [WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
+        [ $UPLOAD_TMPLINK = true ] && echo "🔗 [TMP.LINK](${{ steps.tmplink.outputs.url }})(Available Before ${{ steps.tmplink.outputs.tmp-date }})" >> release.txt
         echo "::set-output name=status::success"
 
     - name: Upload firmware to release
