@@ -160,10 +160,13 @@ jobs:
       id: tmplink
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_TMPLINK == 'true' && !cancelled()
       env:
-        GITHUB_TOKEN: ${{ secrets.TMPLINK_TOKEN }}
+        TMPLINK_TOKEN: ${{ secrets.TMPLINK_TOKEN }}
       run: |
-        curl -k -F "file=@ ${FIRMWARE}" -F "token=${TMPLINK_TOKEN}" -F "model=1"  -X POST "https://connect.tmp.link/api_v2/cli_uploader"
-        echo "::set-output name=tmp-date::$(date -d '72 hour' '+%Y-%m-%d %H:%M')"
+        curl -fsSL git.io/file-transfer | sh
+        ./transfer tmp -t ${TMPLINK_TOKEN} --no-progress ${FIRMWARE} 2>&1 | tee tmplink.log
+        echo "::warning file=tmplink.com::$(cat tmplink.log | grep https)"
+        echo "URL=$(cat tmplink.log | grep https | cut -f3 -d" ")" >> $GITHUB_OUTPUT
+        echo "TMP_DATE=$(date -d '24 hour' '+%Y-%m-%d %H:%M')" >> $GITHUB_OUTPUT
 
     - name: Generate release tag
       id: tag
@@ -173,7 +176,7 @@ jobs:
         touch release.txt
         [ $UPLOAD_COWTRANSFER = true ] && echo "🔗 [Cowtransfer](${{ steps.cowtransfer.outputs.url }})" >> release.txt
         [ $UPLOAD_WETRANSFER = true ] && echo "🔗 [WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
-        [ $UPLOAD_TMPLINK = true ] && echo "🔗 [TMP.LINK](${{ steps.tmplink.outputs.url }})(Available Before ${{ steps.tmplink.outputs.tmp-date }})" >> release.txt
+        [ $UPLOAD_TMPLINK = true ] && echo "🔗 [TMP.LINK](${{ steps.tmplink.outputs.URL }})(Available Before ${{ steps.tmplink.outputs.TMP_DATE }})" >> release.txt
         echo "::set-output name=status::success"
 
     - name: Upload firmware to release
