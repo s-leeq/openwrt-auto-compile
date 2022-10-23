@@ -20,7 +20,7 @@ on:
         default: 'false'
 
 env:
-  TARGET_NAME: R86S(x86_64)
+  TARGET_NAME: x86
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
