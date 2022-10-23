@@ -138,6 +138,14 @@ jobs:
         name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
 
+    - name: Make tar file
+      id: tar
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      run: |
+        cd openwrt
+        tar -czf /workdir/${{ env.TARGET_NAME }}.tar.gz bin/
+        echo "TAR=/workdir/${{ env.TARGET_NAME }}.tar.gz" >> $GITHUB_ENV
+
     - name: Upload firmware to cowtransfer
       id: cowtransfer
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_COWTRANSFER == 'true' && !cancelled()
@@ -163,7 +171,7 @@ jobs:
         TMPLINK_TOKEN: ${{ secrets.TMPLINK_TOKEN }}
       run: |
         curl -fsSL git.io/file-transfer | sh
-        ./transfer tmp -t ${TMPLINK_TOKEN} --no-progress ${FIRMWARE} 2>&1 | tee tmplink.log
+        ./transfer tmp -t ${TMPLINK_TOKEN} --no-progress ${{ env.TAR }} 2>&1 | tee tmplink.log
         echo "::warning file=tmplink.com::$(cat tmplink.log | grep https)"
         echo "URL=$(cat tmplink.log | grep https | cut -f3 -d" ")" >> $GITHUB_OUTPUT
         echo "TMP_DATE=$(date -d '24 hour' '+%Y-%m-%d %H:%M')" >> $GITHUB_OUTPUT
@@ -180,15 +188,15 @@ jobs:
         echo "::set-output name=status::success"
 
     - name: Upload firmware to release
-      uses: ncipollo/release-action@v1
+      uses: softprops/action-gh-release@v1
       if: steps.tag.outputs.status == 'success' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
         name: ${{ env.TARGET_NAME }}
-        commit: Auto Update
-        tag: ${{ steps.tag.outputs.release_tag }} - ${{ steps.tag.outputs.release_tag }}
-        bodyFile: release.txt
-        artifacts: ${{ env.FIRMWARE }}/*
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: ${{ env.TAR }}
 
     - name: Delete workflow runs
       uses: GitRML/delete-workflow-runs@main
