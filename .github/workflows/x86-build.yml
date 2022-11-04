@@ -27,6 +27,7 @@ env:
   CONFIG_FILE: devices/x86/.config
   DIY_P1_SH: devices/x86/diy-part1.sh
   DIY_P2_SH: devices/x86/diy-part2.sh
+  FILES_DIR: devices/x86/files
   UPLOAD_BIN_DIR: true
   UPLOAD_FIRMWARE: true
   UPLOAD_COWTRANSFER: false
