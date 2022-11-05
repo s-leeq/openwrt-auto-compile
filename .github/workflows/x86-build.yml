@@ -128,7 +128,7 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        chmox +x $BOOTFS_SH
+        chmod +x $BOOTFS_SH
         cd openwrt/bin/targets/*/*
         $GITHUB_WORKSPACE/$BOOTFS_SH
         rm -rf packages
