@@ -28,7 +28,7 @@ env:
   DIY_P1_SH: devices/x86/diy-part1.sh
   DIY_P2_SH: devices/x86/diy-part2.sh
   BOOTFS_SH: devices/x86/bootfs.img.sh
-  FILES_DIR: devices/x86/files
+  FILES_SOURCE_DIR: devices/x86/files
   UPLOAD_BIN_DIR: true
   UPLOAD_FIRMWARE: true
   UPLOAD_COWTRANSFER: false
@@ -80,7 +80,7 @@ jobs:
 
     - name: Load custom configuration
       run: |
-        [ -e $FILES_DIR ] && mv $FILES_DIR openwrt/files
+        [ -e $FILES_DIR ] && cp -R $FILES_SOURCE_DIR openwrt/files
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
         rm -rf openwrt/files/var/data/.gitkeep
         chmod +x $DIY_P2_SH
