@@ -55,8 +55,8 @@ jobs:
         sudo wget -O /tmp/go.tar.gz https://go.dev/dl/go1.19.10.linux-amd64.tar.gz
         sudo tar -C /usr/local -xzf /tmp/go.tar.gz
         sudo ln -s /usr/local/go/bin/* /usr/bin/
-        sudo export GOPATH="$HOME/go"
-        sudo export PATH="$PATH:/usr/local/go/bin:$GOPATH/bin"
+        export GOPATH="$HOME/go"
+        export PATH="$PATH:/usr/local/go/bin:$GOPATH/bin"
         sudo timedatectl set-timezone "$TZ"
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
